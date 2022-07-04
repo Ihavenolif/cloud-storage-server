@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 import logging
-import mysql.connector
+#import mysql.connector
 
 #logging.basicConfig(
 #        format='%(asctime)s %(levelname)-8s %(message)s',
