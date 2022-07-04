@@ -9,8 +9,8 @@ import mysql.connector
 #        filename='log.log')
 
 app = Flask(__name__)
-DB = mysql.connector.connect(host="localhost", user="root", password="Kokot123#", database="users")
-db_cursor = DB.cursor()
+#DB = mysql.connector.connect(host="localhost", user="root", password="Kokot123#", database="users")
+#db_cursor = DB.cursor()
 
 
 @app.route("/")
@@ -40,12 +40,12 @@ def register_resolve():
         data = request.form
         sql = "INSERT INTO credentials (username, passwordHash) VALUES (%s, %s);"
         val = (data["username"], data["password"])
-        db_cursor.execute(sql, val)
-        DB.commit()
+        #db_cursor.execute(sql, val)
+        #DB.commit()
         return "ty, registered"
         
 
-db_cursor.execute("SELECT * FROM credentials;")
+#db_cursor.execute("SELECT * FROM credentials;")
 
-for x in db_cursor:
-    print(x)
+#for x in db_cursor:
+#    print(x)
