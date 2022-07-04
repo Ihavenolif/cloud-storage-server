@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
 import logging
-#import mysql.connector
 
 #logging.basicConfig(
 #        format='%(asctime)s %(levelname)-8s %(message)s',
@@ -9,8 +8,6 @@ import logging
 #        filename='log.log')
 
 app = Flask(__name__)
-#DB = mysql.connector.connect(host="localhost", user="root", password="Kokot123#", database="users")
-#db_cursor = DB.cursor()
 
 
 @app.route("/")
@@ -40,12 +37,6 @@ def register_resolve():
         data = request.form
         sql = "INSERT INTO credentials (username, passwordHash) VALUES (%s, %s);"
         val = (data["username"], data["password"])
-        #db_cursor.execute(sql, val)
-        #DB.commit()
         return "ty, registered"
-        
 
-#db_cursor.execute("SELECT * FROM credentials;")
 
-#for x in db_cursor:
-#    print(x)
