@@ -19,36 +19,65 @@
             <li class="nav-item">
               <a class="nav-link" href="/login">Login</a>
             </li>
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a class="nav-link" href="/register">Register</a>
               </li>
             <li class="nav-item">
                 <a class="nav-link" href="/upload">Upload</a>
               </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a class="nav-link" href="/files">Files</a>
               </li>
           </ul>
     </nav>
 
-    <div class="container-sm border border-primary rounded" style="width: 30%; margin-top: 10%;">
-        <form method="post" action="/register_resolve">
-            <div class="mb-3 mt-3">
-                <label for="username" class="form-label">Username:</label>
-                <input type="text" name="username" id="username-input" class="form-control">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-2">
+
             </div>
-            <div class="mb-3 mt-3">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" name="password" id="password-input" class="form-control">
+
+            <div class="col-sm-8" id="content-box">
+                <div class="row">
+                    <div class="col-sm-6">
+                        File name
+                    </div>
+                    <div class="col-sm-3">
+                        Modified
+                    </div>
+                    <div class="col-sm-3">
+                        Download
+                    </div>
+                </div>
+                
             </div>
-            <div class="mb-3 mt-3">
-                <label for="password-repeat" class="form-label">Repeat password:</label>
-                <input type="password" name="password-repeat" id="password-repeat-input" class="form-control">
+
+            <div class="col-sm-2">
+                
             </div>
-            <button type="submit" class="btn btn-primary" style="margin-bottom: 2.2%;">Register</button>
-        </form>
+        </div>
     </div>
 
-    
+    <script>
+        itemList = JSON.parse('{{ itemList|tojson }}')
+
+        const CONTENTBOX = document.getElementById("content-box")
+
+        for(x in itemList){
+            CONTENTBOX.innerHTML += 
+            "<div class=\"row\">" + 
+                "<div class=\"col-sm-6\">" +
+                    itemList[x] +
+                "</div>" +
+                "<div class=\"col-sm-3\">" +
+                    "Modified" +
+                "</div>" +
+                "<div class=\"col-sm-3\">" +
+                    "<a href=\"/static/files/" + itemList[x] + "\" download>DL</a>" +
+                "</div>" +
+            "</div>"
+            
+        }
+    </script>
 </body>
 </html>

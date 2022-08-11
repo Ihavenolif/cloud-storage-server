@@ -1,9 +1,27 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import FileField, SubmitField
 from werkzeug.utils import secure_filename
 import logging
 import os
+import json
+
+WORKING_DIR = os.getcwd()
+
+def iterateThroughFiles():
+    if(os.getcwd() == WORKING_DIR):
+        os.chdir("./static/files")
+    rootDir = os.getcwd()
+    resultList = []
+    
+    for subdir, dirs, files in os.walk(rootDir):
+        for file in files:
+            resultList.append((os.path.join(subdir, file).replace(WORKING_DIR + "/static/files/", "")))
+        for dir in dirs:
+            resultList.append((os.path.join(subdir, dir).replace(WORKING_DIR + "/static/files/", "")))
+
+    resultList.reverse()
+    return resultList
 
 class UploadFileForm(FlaskForm):
     file = FileField("File")
@@ -56,8 +74,12 @@ def upload():
         file = form.file.data
         file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], secure_filename(file.filename)))
         return file.filename + " has been uploaded."
-    return render_template("upload.html", form=form, kokot="kokot")    
+    return render_template("upload.html", form=form)    
 
+
+@app.route("/files")
+def files():
+    return render_template("files.html", itemList=iterateThroughFiles())
 
 if __name__ == "__main__":
     if(os.getenv("TESTING") == "True"):
