@@ -1,5 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
+from flask_wtf import FlaskForm
+from wtforms import FileField, SubmitField
+from werkzeug.utils import secure_filename
 import logging
+import os
+
+class UploadFileForm(FlaskForm):
+    file = FileField("File")
+    submit = SubmitField("Upload File")
 
 #logging.basicConfig(
 #        format='%(asctime)s %(levelname)-8s %(message)s',
@@ -8,7 +16,9 @@ import logging
 #        filename='log.log')
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "KOKOT"
 
+app.config["UPLOAD_FOLDER"] = "static/files"
 
 @app.route("/")
 def index():
@@ -39,6 +49,20 @@ def register_resolve():
         val = (data["username"], data["password"])
         return "ty, registered"
 
+@app.route("/upload", methods=["GET", "POST"])
+def upload():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        file = form.file.data
+        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], secure_filename(file.filename)))
+        return file.filename + " has been uploaded."
+    return render_template("upload.html", form=form, kokot="kokot")    
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    if(os.getenv("TESTING") == "True"):
+        TESTING = True
+    else:
+        TESTING = False
+
+    app.run(host="0.0.0.0", port=5000, debug=TESTING)

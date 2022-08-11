@@ -16,32 +16,26 @@
             <li class="nav-item">
               <a class="nav-link" href="/">Main Page</a>
             </li>
-            <li class="nav-item active">
+            <li class="nav-item">
               <a class="nav-link" href="/login">Login</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/register">Register</a>
               </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a class="nav-link" href="/upload">Upload</a>
               </li>
           </ul>
     </nav>
 
-    <div class="container-sm border border-primary rounded" style="width: 30%; margin-top: 10%;">
-        <form method="post" action="/login_resolve">
-            <div class="mb-3 mt-3">
-                <label for="username" class="form-label">Username:</label>
-                <input type="text" name="username" id="username-input" class="form-control">
-            </div>
-            <div class="mb-3 mt-3">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" name="password" id="password-input" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-primary" style="margin-bottom: 2.2%;">Login</button>
-        </form>
-    </div>
+    <!--<a href="{{ url_for('static', filename='files/842125043688538123.webp') }}" download>download</a>-->
 
-    
+    <h1>{{ kokot }}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {{form.hidden_tag()}}
+        {{form.file()}}
+        {{form.submit()}}
+    </form>
 </body>
 </html>
