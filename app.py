@@ -85,7 +85,7 @@ def load_user(user_id):
 def index():
     return render_template("index.html", page="index")
 
-@app.route("/login/", methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
