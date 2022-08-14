@@ -1,12 +1,20 @@
-from flask import Flask, render_template, request
+from crypt import methods
+from curses import flash
+from flask import Flask, render_template, request, redirect, url_for
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
+from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import FileField, SubmitField
+from wtforms import FileField, SubmitField, StringField, PasswordField
 from werkzeug.utils import secure_filename
-import logging
 import os
-import json
+import hashlib
+import random
+import string
 
 WORKING_DIR = os.getcwd()
+USERNAME = os.getenv("WEBSITE_USERNAME")
+PASSWORD = os.getenv("WEBSITE_PASSWORD")
+characters = list(string.ascii_letters + string.digits + "!@#$%^&*()")
 
 def iterateThroughFiles():
     if(os.getcwd() == WORKING_DIR):
@@ -23,9 +31,28 @@ def iterateThroughFiles():
     resultList.reverse()
     return resultList
 
+def generate_random_password(length):
+	## shuffling the characters
+	random.shuffle(characters)
+	
+	## picking random characters from the list
+	password = []
+	for i in range(length):
+		password.append(random.choice(characters))
+
+	## shuffling the resultant password
+	random.shuffle(password)
+
+	## converting the list to string
+	## printing the list
+	return "".join(password)
+
 class UploadFileForm(FlaskForm):
     file = FileField("File")
     submit = SubmitField("Upload File")
+
+#class LoginForm(FlaskForm):
+    #username = StringField("Username", validators=[DataRequired()])
 
 #logging.basicConfig(
 #        format='%(asctime)s %(levelname)-8s %(message)s',
@@ -35,39 +62,73 @@ class UploadFileForm(FlaskForm):
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "KOKOT"
-
 app.config["UPLOAD_FOLDER"] = "static/files"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
+
+db = SQLAlchemy(app)
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(256), unique=True)
+    passwordHash = db.Column(db.String(256))
+    salt = db.Column(db.String(32))
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.route("/")
 def index():
     return render_template("index.html", page="index")
 
-@app.route("/login/")
+@app.route("/login/", methods=["GET", "POST"])
 def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        user = User.query.filter_by(username=username).first()
+
+        if not user:
+            return "user not found"
+
+        password_hash = hashlib.sha256((password+user.salt).encode("utf-8")).hexdigest()
+        if user.passwordHash == password_hash:
+            login_user(user)
+        else:
+            return "incorrect password"
+        return redirect(url_for("files"))
+    
+
     return render_template("login.html", page="login")
 
-@app.route("/register")
+@app.route("/logout", methods=["GET", "POST"])
+@login_required
+def logout():
+    logout_user()
+    return "Logged out"
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html", page="register")
-
-@app.route("/login_resolve", methods=["POST"])
-def login_resolve():
     if request.method == "POST":
-        data = request.form
-        for x in data:
-            print(data["username"])
-            print(data["password"])
-        return "thx"
+        username = request.form["username"]
+        password = request.form["password"]
+        salt = generate_random_password(32)
+        password_hash = hashlib.sha256((password+salt).encode("utf-8")).hexdigest()
+        user = User(username=username, passwordHash=password_hash, salt=salt)
+        db.session.add(user)
+        db.session.commit()
+        return "Registered with username " + username
+    
 
-@app.route("/register_resolve", methods=["POST"])
-def register_resolve():
-    if request.method == "POST":
-        data = request.form
-        sql = "INSERT INTO credentials (username, passwordHash) VALUES (%s, %s);"
-        val = (data["username"], data["password"])
-        return "ty, registered"
+    return render_template("register.html")
 
 @app.route("/upload", methods=["GET", "POST"])
+@login_required
 def upload():
     form = UploadFileForm()
     if form.validate_on_submit():
@@ -76,8 +137,8 @@ def upload():
         return file.filename + " has been uploaded."
     return render_template("upload.html", form=form)    
 
-
 @app.route("/files")
+@login_required
 def files():
     return render_template("files.html", itemList=iterateThroughFiles())
 

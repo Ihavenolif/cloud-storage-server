@@ -1,3 +1,5 @@
 flask===2.1.2
+flask_login
 flask_wtf
+Flask-SQLAlchemy
 wtforms
