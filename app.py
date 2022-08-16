@@ -1,6 +1,6 @@
-from crypt import methods
-from curses import flash
-from flask import Flask, render_template, request, redirect, url_for
+from genericpath import exists
+from operator import truediv
+from flask import Flask, render_template, request, redirect, url_for, send_file
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
@@ -16,17 +16,17 @@ USERNAME = os.getenv("WEBSITE_USERNAME")
 PASSWORD = os.getenv("WEBSITE_PASSWORD")
 characters = list(string.ascii_letters + string.digits + "!@#$%^&*()")
 
-def iterateThroughFiles():
+def iterateThroughFiles(username):
     if(os.getcwd() == WORKING_DIR):
-        os.chdir("./static/files")
+        os.chdir("./static/files/" + username)
     rootDir = os.getcwd()
     resultList = []
     
     for subdir, dirs, files in os.walk(rootDir):
         for file in files:
-            resultList.append((os.path.join(subdir, file).replace(WORKING_DIR + "/static/files/", "")))
+            resultList.append((os.path.join(subdir, file).replace(WORKING_DIR + "/static/files/" + username + "/", "")))
         for dir in dirs:
-            resultList.append((os.path.join(subdir, dir).replace(WORKING_DIR + "/static/files/", "")))
+            resultList.append((os.path.join(subdir, dir).replace(WORKING_DIR + "/static/files/" + username + "/", "")))
 
     resultList.reverse()
     return resultList
@@ -116,12 +116,18 @@ def logout():
 def register():
     if request.method == "POST":
         username = request.form["username"]
+
+        if User.query.filter_by(username=username).first():
+            return "User already exists"
+        
         password = request.form["password"]
         salt = generate_random_password(32)
         password_hash = hashlib.sha256((password+salt).encode("utf-8")).hexdigest()
         user = User(username=username, passwordHash=password_hash, salt=salt)
+        os.mkdir(WORKING_DIR + "/static/files/" + username)
         db.session.add(user)
         db.session.commit()
+        login_user(User.query.filter_by(username=username).first())
         return "Registered with username " + username
     
 
@@ -137,10 +143,19 @@ def upload():
         return file.filename + " has been uploaded."
     return render_template("upload.html", form=form)    
 
+@app.route("/download", methods=["GET"])
+@login_required
+def download():
+    path = "./static/files/" + getattr(current_user, "username") + "/" + request.args["filename"]
+    if exists(WORKING_DIR + "/static/files/" + getattr(current_user, "username") + "/" + request.args["filename"]):
+        return send_file(path, as_attachment=True)
+    else:
+        return "File not found"
+
 @app.route("/files")
 @login_required
 def files():
-    return render_template("files.html", itemList=iterateThroughFiles())
+    return render_template("files.html", itemList=iterateThroughFiles(getattr(current_user, "username")), username=getattr(current_user, "username"))
 
 if __name__ == "__main__":
     if(os.getenv("TESTING") == "True"):
