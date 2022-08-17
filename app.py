@@ -11,22 +11,22 @@ import hashlib
 import random
 import string
 
-WORKING_DIR = os.getcwd()
+ROOT_DIR = os.getcwd()
 USERNAME = os.getenv("WEBSITE_USERNAME")
 PASSWORD = os.getenv("WEBSITE_PASSWORD")
 characters = list(string.ascii_letters + string.digits + "!@#$%^&*()")
 
 def iterateThroughFiles(username):
-    if(os.getcwd() == WORKING_DIR):
-        os.chdir("./static/files/" + username)
-    rootDir = os.getcwd()
+    os.chdir(ROOT_DIR)
+    os.chdir("./static/files/" + username)
+    userDir = os.getcwd()
     resultList = []
     
-    for subdir, dirs, files in os.walk(rootDir):
+    for subdir, dirs, files in os.walk(userDir):
         for file in files:
-            resultList.append((os.path.join(subdir, file).replace(WORKING_DIR + "/static/files/" + username + "/", "")))
+            resultList.append((os.path.join(subdir, file).replace(ROOT_DIR + "/static/files/" + username + "/", "")))
         for dir in dirs:
-            resultList.append((os.path.join(subdir, dir).replace(WORKING_DIR + "/static/files/" + username + "/", "")))
+            resultList.append((os.path.join(subdir, dir).replace(ROOT_DIR + "/static/files/" + username + "/", "")))
 
     resultList.reverse()
     return resultList
@@ -124,9 +124,10 @@ def register():
         salt = generate_random_password(32)
         password_hash = hashlib.sha256((password+salt).encode("utf-8")).hexdigest()
         user = User(username=username, passwordHash=password_hash, salt=salt)
-        os.mkdir(WORKING_DIR + "/static/files/" + username)
+        os.mkdir(ROOT_DIR + "/static/files/" + username)
         db.session.add(user)
         db.session.commit()
+        logout_user()
         login_user(User.query.filter_by(username=username).first())
         return "Registered with username " + username
     
@@ -147,7 +148,7 @@ def upload():
 @login_required
 def download():
     path = "./static/files/" + getattr(current_user, "username") + "/" + request.args["filename"]
-    if exists(WORKING_DIR + "/static/files/" + getattr(current_user, "username") + "/" + request.args["filename"]):
+    if exists(ROOT_DIR + "/static/files/" + getattr(current_user, "username") + "/" + request.args["filename"]):
         return send_file(path, as_attachment=True)
     else:
         return "File not found"
@@ -155,6 +156,7 @@ def download():
 @app.route("/files")
 @login_required
 def files():
+    print(getattr(current_user, "username"))
     return render_template("files.html", itemList=iterateThroughFiles(getattr(current_user, "username")), username=getattr(current_user, "username"))
 
 if __name__ == "__main__":
