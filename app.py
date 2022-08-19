@@ -18,15 +18,15 @@ characters = list(string.ascii_letters + string.digits + "!@#$%^&*()")
 
 def iterateThroughFiles(username):
     os.chdir(ROOT_DIR)
-    os.chdir("./static/files/" + username)
+    os.chdir("./files/" + username)
     userDir = os.getcwd()
     resultList = []
     
     for subdir, dirs, files in os.walk(userDir):
         for file in files:
-            resultList.append((os.path.join(subdir, file).replace(ROOT_DIR + "/static/files/" + username + "/", "")))
+            resultList.append((os.path.join(subdir, file).replace(ROOT_DIR + "/files/" + username + "/", "")))
         for dir in dirs:
-            resultList.append((os.path.join(subdir, dir).replace(ROOT_DIR + "/static/files/" + username + "/", "")))
+            resultList.append((os.path.join(subdir, dir).replace(ROOT_DIR + "/files/" + username + "/", "")))
 
     resultList.reverse()
     return resultList
@@ -62,7 +62,7 @@ class UploadFileForm(FlaskForm):
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "KOKOT"
-app.config["UPLOAD_FOLDER"] = "static/files"
+app.config["UPLOAD_FOLDER"] = "files"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
 
 db = SQLAlchemy(app)
@@ -147,8 +147,8 @@ def upload():
 @app.route("/download", methods=["GET"])
 @login_required
 def download():
-    path = "./static/files/" + getattr(current_user, "username") + "/" + request.args["filename"]
-    if exists(ROOT_DIR + "/static/files/" + getattr(current_user, "username") + "/" + request.args["filename"]):
+    path = "./files/" + getattr(current_user, "username") + "/" + request.args["filename"]
+    if exists(ROOT_DIR + "/files/" + getattr(current_user, "username") + "/" + request.args["filename"]):
         return send_file(path, as_attachment=True)
     else:
         return "File not found"
