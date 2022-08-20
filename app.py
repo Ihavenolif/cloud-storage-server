@@ -1,5 +1,4 @@
 from genericpath import exists
-from operator import truediv
 from flask import Flask, render_template, request, redirect, url_for, send_file
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
@@ -46,6 +45,24 @@ def generate_random_password(length):
 	## converting the list to string
 	## printing the list
 	return "".join(password)
+
+def duplicate_file_name(path, filename):        
+    if not exists(os.path.join(path, filename)):
+        return filename
+
+    filetype_suffix = "." + filename.split(".")[-1]
+    filename = filename[:-len(filetype_suffix)]
+
+    filename += "-1"
+    i = 1
+
+    while True:
+        if not exists(os.path.join(path, filename + filetype_suffix)):
+            return filename + filetype_suffix
+        else:
+            i += 1
+            filename = filename[:-len(str(i-1))] + str(i)
+
 
 class UploadFileForm(FlaskForm):
     file = FileField("File")
@@ -141,7 +158,8 @@ def upload():
     if form.validate_on_submit():
         file = form.file.data
         #print(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], secure_filename(file.filename)))
-        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], getattr(current_user, "username"), secure_filename(file.filename)))
+        filename = secure_filename(duplicate_file_name(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], getattr(current_user, "username")), file.filename))
+        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], getattr(current_user, "username"), filename))
         return file.filename + " has been uploaded."
     return render_template("upload.html", form=form)    
 
