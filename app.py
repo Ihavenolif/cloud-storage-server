@@ -124,7 +124,7 @@ def register():
         salt = generate_random_password(32)
         password_hash = hashlib.sha256((password+salt).encode("utf-8")).hexdigest()
         user = User(username=username, passwordHash=password_hash, salt=salt)
-        os.mkdir(ROOT_DIR + "/static/files/" + username)
+        os.mkdir(ROOT_DIR + "/files/" + username)
         db.session.add(user)
         db.session.commit()
         logout_user()
@@ -140,7 +140,8 @@ def upload():
     form = UploadFileForm()
     if form.validate_on_submit():
         file = form.file.data
-        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], secure_filename(file.filename)))
+        #print(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], secure_filename(file.filename)))
+        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config["UPLOAD_FOLDER"], getattr(current_user, "username"), secure_filename(file.filename)))
         return file.filename + " has been uploaded."
     return render_template("upload.html", form=form)    
 
