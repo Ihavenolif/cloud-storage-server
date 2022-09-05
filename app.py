@@ -1,9 +1,18 @@
+### TODO: Flash on redirect to login
+### TODO: Better files listing
+### TODO: Folder support
+### TODO: Anonymous (public) upload + download
+### TODO: Proper logout page
+### TODO: UI rework, login, register, user settings on the right
+
 from genericpath import exists
 from flask import Flask, render_template, request, redirect, url_for, send_file
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import FileField, SubmitField, StringField, PasswordField
+from flask_wtf.file import FileField, FileRequired
+from wtforms import SubmitField, StringField, PasswordField
+from wtforms.validators import DataRequired, EqualTo
 from werkzeug.utils import secure_filename
 import os
 import hashlib
@@ -65,11 +74,17 @@ def duplicate_file_name(path, filename):
 
 
 class UploadFileForm(FlaskForm):
-    file = FileField("File")
+    file = FileField("File", validators=[FileRequired()])
     submit = SubmitField("Upload File")
 
-#class LoginForm(FlaskForm):
-    #username = StringField("Username", validators=[DataRequired()])
+class LoginForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+
+class RegisterForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired(), EqualTo("password_repeat", message="Passwords must match")])
+    password_repeat = PasswordField("Repeat password", validators=[DataRequired()])
 
 #logging.basicConfig(
 #        format='%(asctime)s %(levelname)-8s %(message)s',
@@ -104,9 +119,10 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
 
         user = User.query.filter_by(username=username).first()
 
@@ -121,23 +137,24 @@ def login():
         return redirect(url_for("files"))
     
 
-    return render_template("login.html", page="login")
+    return render_template("login.html", page="login", form=form)
 
 @app.route("/logout", methods=["GET", "POST"])
 @login_required
 def logout():
     logout_user()
-    return "Logged out"
+    return "Logged out<br><a href=\"/\">Main Page</a>"
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == "POST":
-        username = request.form["username"]
+    form = RegisterForm()
+    if form.validate_on_submit():
+        username = form.username.data
 
         if User.query.filter_by(username=username).first():
             return "User already exists"
         
-        password = request.form["password"]
+        password = form.password.data
         salt = generate_random_password(32)
         password_hash = hashlib.sha256((password+salt).encode("utf-8")).hexdigest()
         user = User(username=username, passwordHash=password_hash, salt=salt)
@@ -149,7 +166,7 @@ def register():
         return "Registered with username " + username
     
 
-    return render_template("register.html")
+    return render_template("register.html", form=form)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required

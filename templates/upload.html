@@ -35,10 +35,14 @@
 
     <h1>{{ kokot }}</h1>
 
-    <form method="post" enctype="multipart/form-data">
+    <div class="container-sm border border-primary rounded" style="width: 30%; margin-top: 10%; text-align: center;">
+      <form method="post" enctype="multipart/form-data">
         {{form.hidden_tag()}}
-        {{form.file()}}
+        {{form.file()}}<br>
         {{form.submit()}}
-    </form>
+      </form>
+    </div>
+
+    
 </body>
 </html>
