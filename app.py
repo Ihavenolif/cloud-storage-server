@@ -191,7 +191,8 @@ def download():
 
 @app.route("/song_download")
 def song_download():
-    path = "~/Music/ZSpotify Music/" + request.args["filename"] 
+    path = os.path.join(os.path.expanduser("~/Music/ZSpotify Music/"), request.args["filename"] )
+    print(path)
     if exists(path):
         return send_file(path, as_attachment=True)
     else:
