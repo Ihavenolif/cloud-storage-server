@@ -189,6 +189,14 @@ def download():
     else:
         return "File not found"
 
+@app.route("/song_download")
+def song_download():
+    path = "~/Music/ZSpotify Music/" + request.args["filename"] 
+    if exists(path):
+        return send_file(path, as_attachment=True)
+    else:
+        return "file not found"
+
 @app.route("/files")
 @login_required
 def files():
