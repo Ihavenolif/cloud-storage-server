@@ -14,6 +14,9 @@ from flask_wtf.file import FileField, FileRequired
 from wtforms import SubmitField, StringField, PasswordField
 from wtforms.validators import DataRequired, EqualTo
 from werkzeug.utils import secure_filename
+
+from blueprints import simple_page
+
 import os
 import hashlib
 import random
@@ -93,6 +96,7 @@ class RegisterForm(FlaskForm):
 #        filename='log.log')
 
 app = Flask(__name__)
+app.register_blueprint(simple_page)
 app.config["SECRET_KEY"] = "KOKOT"
 app.config["UPLOAD_FOLDER"] = "files"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
