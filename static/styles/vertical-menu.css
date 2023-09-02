@@ -1,0 +1,19 @@
+.vertical-menu {
+    width: fit-content;
+  }
+  
+  .vertical-menu a {
+    background-color: #ddd;
+    color: black;
+    padding: 12px;
+    text-decoration: none;
+  }
+  
+  .vertical-menu a:hover {
+    background-color: #bbb;
+  }
+  
+  .vertical-menu a.active {
+    background-color: #007bff;
+    color: white;
+  }
