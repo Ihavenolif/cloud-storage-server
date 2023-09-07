@@ -35,9 +35,18 @@ def iterateThroughFiles(username):
     
     for subdir, dirs, files in os.walk(userDir):
         for file in files:
-            resultList.append((os.path.join(subdir, file).replace(ROOT_DIR + "/files/" + username + "/", "")))
+            filename = (os.path.join(subdir, file).replace(ROOT_DIR + "/files/" + username + "/", ""))
+            temp = {
+                "filename": filename
+            }
+            resultList.append(temp)
         for dir in dirs:
-            resultList.append((os.path.join(subdir, dir).replace(ROOT_DIR + "/files/" + username + "/", "")))
+            filename = (os.path.join(subdir, dir).replace(ROOT_DIR + "/files/" + username + "/", ""))
+            temp = {
+                "filename": filename
+            }
+            resultList.append(temp)
+
 
     resultList.reverse()
     return resultList
@@ -119,7 +128,11 @@ def load_user(user_id):
 
 @app.route("/")
 def index():
-    return render_template("index.html", page="index")
+    try:
+        username = getattr(current_user, "username")
+    except:
+        username = "Not logged in"
+    return render_template("index.html", page="index", username=username)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -147,7 +160,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return "Logged out<br><a href=\"/\">Main Page</a>"
+    return render_template("logout.html")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -206,12 +219,10 @@ def song_download():
 @login_required
 def files():
     print(getattr(current_user, "username"))
+    print(iterateThroughFiles(getattr(current_user, "username")))
     return render_template("files.html", itemList=iterateThroughFiles(getattr(current_user, "username")), username=getattr(current_user, "username"))
 
 if __name__ == "__main__":
-    if(os.getenv("TESTING") == "True"):
-        TESTING = True
-    else:
-        TESTING = False
+    
 
-    app.run(host="0.0.0.0", port=5000, debug=TESTING)
+    app.run(host="0.0.0.0", port=5000, debug=True)
