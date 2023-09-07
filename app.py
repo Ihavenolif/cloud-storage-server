@@ -222,6 +222,14 @@ def files():
     print(iterateThroughFiles(getattr(current_user, "username")))
     return render_template("files.html", itemList=iterateThroughFiles(getattr(current_user, "username")), username=getattr(current_user, "username"))
 
+@app.route("/blog/erasmus")
+def erasmus():
+    try:
+        username = getattr(current_user, "username")
+    except:
+        username = "Not logged in"
+    return render_template("blog/erasmus.html", page="index", username=username)
+
 if __name__ == "__main__":
     
 
